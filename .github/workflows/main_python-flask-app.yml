@@ -71,12 +71,25 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: coverage-report
+          path: .
+
+      - name: List files for debugging
+        run: |
+          echo "Files in current directory:"
+          ls -la
+          echo "Coverage file check:"
+          if [ -f coverage.xml ]; then
+            echo "✅ coverage.xml found"
+            head -20 coverage.xml
+          else
+            echo "❌ coverage.xml NOT found"
+          fi
 
       - name: Run SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN}}
-          # SONAR_HOST_URL: https://sonarcloud.io   # o tu servidor
+          SONAR_HOST_URL: https://sonarcloud.io
 
   deploy:
     name: Deploy to Azure Web App
