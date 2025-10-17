@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "const-pruebas-soft-ud",
+        "projectKey": "const-pruebas-soft-ud_python-flask-app"
+    }
+}
