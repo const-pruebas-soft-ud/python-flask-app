@@ -35,6 +35,14 @@ def hello():
        print('Request for hello page received with no name or blank name -- redirecting')
        return redirect(url_for('index'))
 
+# --- NUEVA RUTA: Reset counters ---
+@app.post("/reset")
+def reset_counters():
+    global visit_count, greeting_count
+    visit_count = 0
+    greeting_count = 0
+    # volvemos al home con un indicador para mostrar un mensaje en la UI
+    return redirect(url_for("index", reset=1))
 
 if __name__ == '__main__':
    app.run(port=80)

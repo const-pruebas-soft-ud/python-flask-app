@@ -86,7 +86,6 @@ def test_multiple_visits_increment(client):
     # El contador debe estar presente
     assert b'Page visits:' in response.data
 
-
 def test_multiple_greetings_increment(client):
     """Prueba que múltiples saludos incrementan el contador"""
     names = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve']
@@ -98,3 +97,21 @@ def test_multiple_greetings_increment(client):
     
     # El contador debe estar presente
     assert b'Total greetings:' in response.data
+
+def test_reset_counters_ok(client):
+    # 1) sube el contador con dos visitas
+    client.get("/")
+    client.get("/")
+
+    # 2) resetear SIN seguir el redirect
+    res = client.post("/reset", follow_redirects=False)
+    assert res.status_code in (302, 303)
+
+    # 3) primera visita tras reset => debe ser 1
+    res2 = client.get("/")
+    html2 = res2.data.decode("utf-8")
+    assert "Page visits" in html2 and ": 1" in html2
+
+def test_reset_counters_method_not_allowed(client):
+    res = client.get("/reset")
+    assert res.status_code in (405, 302)
