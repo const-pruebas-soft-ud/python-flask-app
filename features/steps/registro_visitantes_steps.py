@@ -6,6 +6,9 @@ from unittest.mock import MagicMock
 from datetime import datetime, timedelta
 import re
 
+# Constante para conversión de timestamps
+UTC_OFFSET = '+00:00'
+
 
 # ============================================================================
 # GIVEN (Dado) - Precondiciones
@@ -170,8 +173,8 @@ def step_visit_count_is(context, count):
 def step_dates_are_current(context):
     """Verifica que las fechas son recientes"""
     visitor = context.new_visitor
-    first_visit = datetime.fromisoformat(visitor['first_visit'].replace('Z', '+00:00'))
-    last_visit = datetime.fromisoformat(visitor['last_visit'].replace('Z', '+00:00'))
+    first_visit = datetime.fromisoformat(visitor['first_visit'].replace('Z', UTC_OFFSET))
+    last_visit = datetime.fromisoformat(visitor['last_visit'].replace('Z', UTC_OFFSET))
     
     now = datetime.now()
     # Verificar que las fechas son de hoy (con margen de 1 minuto)
@@ -202,7 +205,7 @@ def step_visit_count_increments(context, count):
 def step_last_visit_updated(context):
     """Verifica que last_visit se actualizó"""
     last_visit = datetime.fromisoformat(
-        context.updated_visitor['last_visit'].replace('Z', '+00:00')
+        context.updated_visitor['last_visit'].replace('Z', UTC_OFFSET)
     )
     now = datetime.now()
     assert abs((last_visit.replace(tzinfo=None) - now).total_seconds()) < 60

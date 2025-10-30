@@ -9,7 +9,6 @@ from unittest.mock import patch, MagicMock
 sys.path.insert(0, os.path.abspath('.'))
 
 from app import app
-from database import get_supabase_client
 
 
 def before_all(context):
@@ -24,7 +23,7 @@ def before_all(context):
     context.supabase_patcher.start()
 
 
-def before_scenario(context, scenario):
+def before_scenario(context, _scenario):
     """Se ejecuta antes de cada escenario"""
     # Resetear el estado de los mocks
     context.supabase_mock.reset_mock()
