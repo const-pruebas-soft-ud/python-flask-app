@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from typing import Optional
 
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for)
@@ -15,7 +16,7 @@ visit_count = 0
 greeting_count = 0
 
 
-def register_visitor(name: str, ip_address: str = None) -> dict:
+def register_visitor(name: str, ip_address: str = None) -> Optional[dict]:
     """
     Registra o actualiza un visitante en la base de datos
     
@@ -24,7 +25,7 @@ def register_visitor(name: str, ip_address: str = None) -> dict:
         ip_address: Dirección IP del visitante (opcional)
     
     Returns:
-        dict: Datos del visitante registrado
+        Optional[dict]: Datos del visitante registrado, o None si hubo error
     """
     try:
         # Buscar si el visitante ya existe
