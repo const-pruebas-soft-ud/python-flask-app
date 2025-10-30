@@ -54,6 +54,8 @@ cover/
 # Behave BDD reports
 behave-junit/
 behave-results.json
+
+# Translations
 behave-report.html
 
 # Translations

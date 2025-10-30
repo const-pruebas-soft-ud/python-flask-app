@@ -36,7 +36,7 @@ Write-Host "  2️⃣  PRUEBAS BDD (Behave/Gherkin)" -ForegroundColor Green
 Write-Host "================================================" -ForegroundColor Green
 Write-Host ""
 
-behave features/ --format=pretty --format=json --outfile=behave-results.json --format=html --outfile=behave-report.html --junit --junit-directory=behave-junit
+behave features/ --format=pretty --format=json --outfile=behave-results.json --junit --junit-directory=behave-junit
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -57,7 +57,6 @@ Write-Host "📊 Reportes generados:" -ForegroundColor Yellow
 Write-Host "  - Coverage HTML:    htmlcov\index.html" -ForegroundColor White
 Write-Host "  - Coverage XML:     coverage.xml" -ForegroundColor White
 Write-Host "  - Pytest JUnit:     test-results.xml" -ForegroundColor White
-Write-Host "  - Behave HTML:      behave-report.html" -ForegroundColor White
 Write-Host "  - Behave JSON:      behave-results.json" -ForegroundColor White
 Write-Host "  - Behave JUnit:     behave-junit\" -ForegroundColor White
 Write-Host ""

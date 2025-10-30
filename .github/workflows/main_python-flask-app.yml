@@ -94,7 +94,7 @@ jobs:
       - name: Run BDD Tests with Behave
         run: |
           source antenv/bin/activate
-          behave features/ --format=pretty --format=json --outfile=behave-results.json --format=html --outfile=behave-report.html --junit --junit-directory=behave-junit
+          behave features/ --format=pretty --format=json --outfile=behave-results.json --junit --junit-directory=behave-junit
         continue-on-error: false
 
       - name: Upload Behave Results
@@ -104,7 +104,6 @@ jobs:
           name: behave-results
           path: |
             behave-results.json
-            behave-report.html
             behave-junit/
 
       - name: Display BDD Test Summary
