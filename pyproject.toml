@@ -10,12 +10,15 @@ addopts = [
 ]
 
 [tool.coverage.run]
-source = ["."]
+source = ["app.py", "database.py"]
 omit = [
     "*/tests/*",
+    "*/test_*.py",
+    "*/features/*",
     "*/antenv/*",
     "*/.venv/*",
     "*/venv/*",
+    "*/__pycache__/*",
 ]
 
 [tool.coverage.report]

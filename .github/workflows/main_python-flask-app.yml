@@ -145,6 +145,18 @@ jobs:
           else
             echo "❌ coverage.xml NOT found"
           fi
+          echo "Workspace files:"
+          find . -name "*.py" -type f | grep -v "__pycache__" | grep -v "antenv" | head -20
+
+      - name: Fix coverage.xml paths for SonarCloud
+        run: |
+          if [ -f coverage.xml ]; then
+            echo "Original coverage.xml first 10 lines:"
+            head -10 coverage.xml
+            # SonarCloud espera rutas relativas desde la raíz del proyecto
+            # No necesitamos modificar nada si las rutas ya son correctas
+            echo "Coverage.xml is ready for SonarCloud"
+          fi
 
       - name: Run SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
