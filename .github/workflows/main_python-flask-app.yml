@@ -23,25 +23,22 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Create .env file from secrets
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
+          echo "FLASK_ENV=testing" >> .env
+
       - name: Create virtual environment and install dependencies
         run: |
           python -m venv antenv
           source antenv/bin/activate
           pip install -r requirements.txt
 
-      - name: Set up environment variables from secrets
-        run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
-          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
-          echo "FLASK_ENV=testing" >> .env
-
       - name: Run Unit Tests with pytest
         run: |
           source antenv/bin/activate
           pytest tests/ --verbose --junit-xml=test-results.xml --cov=. --cov-report=xml --cov-report=html --cov-report=term
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         continue-on-error: false
 
       - name: Upload Test Results
@@ -82,6 +79,12 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Create .env file from secrets
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
+          echo "FLASK_ENV=testing" >> .env
+
       - name: Create virtual environment and install dependencies
         run: |
           python -m venv antenv
@@ -92,9 +95,6 @@ jobs:
         run: |
           source antenv/bin/activate
           behave features/ --format=pretty --format=json --outfile=behave-results.json --format=html --outfile=behave-report.html --junit --junit-directory=behave-junit
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         continue-on-error: false
 
       - name: Upload Behave Results
