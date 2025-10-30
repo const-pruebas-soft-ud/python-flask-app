@@ -51,6 +51,13 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Behave BDD reports
+behave-junit/
+behave-results.json
+
+# Translations
+behave-report.html
+
 # Translations
 *.mo
 *.pot

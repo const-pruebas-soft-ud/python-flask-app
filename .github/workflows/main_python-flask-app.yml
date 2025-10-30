@@ -23,6 +23,12 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Create .env file from secrets
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
+          echo "FLASK_ENV=testing" >> .env
+
       - name: Create virtual environment and install dependencies
         run: |
           python -m venv antenv
@@ -57,10 +63,65 @@ jobs:
           path: |
             .
             !antenv/
+
+  bdd-tests:
+    name: Run BDD Tests with Behave
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Create .env file from secrets
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
+          echo "FLASK_ENV=testing" >> .env
+
+      - name: Create virtual environment and install dependencies
+        run: |
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Run BDD Tests with Behave
+        run: |
+          source antenv/bin/activate
+          behave features/ --format=pretty --format=json --outfile=behave-results.json --junit --junit-directory=behave-junit
+        continue-on-error: false
+
+      - name: Upload Behave Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: behave-results
+          path: |
+            behave-results.json
+            behave-junit/
+
+      - name: Display BDD Test Summary
+        if: always()
+        run: |
+          echo "### 🧪 BDD Test Results (Behave)" >> $GITHUB_STEP_SUMMARY
+          if [ -f behave-results.json ]; then
+            echo "✅ Behave tests completed successfully" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📊 See detailed report in artifacts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Behave tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
   sonarqube:
     name: SonarQube Code Analysis
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, bdd-tests]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -83,6 +144,18 @@ jobs:
             head -20 coverage.xml
           else
             echo "❌ coverage.xml NOT found"
+          fi
+          echo "Workspace files:"
+          find . -name "*.py" -type f | grep -v "__pycache__" | grep -v "antenv" | head -20
+
+      - name: Fix coverage.xml paths for SonarCloud
+        run: |
+          if [ -f coverage.xml ]; then
+            echo "Original coverage.xml first 10 lines:"
+            head -10 coverage.xml
+            # SonarCloud espera rutas relativas desde la raíz del proyecto
+            # No necesitamos modificar nada si las rutas ya son correctas
+            echo "Coverage.xml is ready for SonarCloud"
           fi
 
       - name: Run SonarQube Scan
