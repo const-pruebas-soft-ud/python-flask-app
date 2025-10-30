@@ -57,10 +57,63 @@ jobs:
           path: |
             .
             !antenv/
+
+  bdd-tests:
+    name: Run BDD Tests with Behave
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Create virtual environment and install dependencies
+        run: |
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Run BDD Tests with Behave
+        run: |
+          source antenv/bin/activate
+          behave features/ --format=pretty --format=json --outfile=behave-results.json --format=html --outfile=behave-report.html --junit --junit-directory=behave-junit
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        continue-on-error: false
+
+      - name: Upload Behave Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: behave-results
+          path: |
+            behave-results.json
+            behave-report.html
+            behave-junit/
+
+      - name: Display BDD Test Summary
+        if: always()
+        run: |
+          echo "### 🧪 BDD Test Results (Behave)" >> $GITHUB_STEP_SUMMARY
+          if [ -f behave-results.json ]; then
+            echo "✅ Behave tests completed successfully" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📊 See detailed report in artifacts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Behave tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
   sonarqube:
     name: SonarQube Code Analysis
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, bdd-tests]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
