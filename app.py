@@ -110,5 +110,52 @@ def reset_counters():
     # volvemos al home con un indicador para mostrar un mensaje en la UI
     return redirect(url_for("index", reset=1))
 
+# --- NUEVA RUTA: Listado de visitantes ---
+@app.get("/visitors")
+def list_visitors():
+    """
+    Muestra:
+      - Tabla con: nombre, primera visita, última visita, contador
+      - Total de visitantes únicos
+      - Total de visitas acumuladas
+    Orden: última visita (desc, más reciente primero)
+    Si no hay registros: mensaje informativo
+    """
+    try:
+        # Traer campos necesarios y ordenar por last_visit DESC
+        response = supabase.table('visitors') \
+            .select('name, first_visit, last_visit, visit_count') \
+            .order('last_visit', desc=True) \
+            .execute()
+        rows = response.data or []
+    except Exception as e:
+        # En caso de fallo de conexión, no romper la UI
+        print(f"❌ Error consultando visitors: {e}")
+        rows = []
+
+    total_unique = len(rows)
+    total_visits = sum(int(r.get('visit_count', 0) or 0) for r in rows)
+
+    # Normalizar ISO 8601 → strings amigables (opcional)
+    def fmt(dt_str):
+        if not dt_str:
+            return "-"
+        # Evitar crash si viene con/ sin zona horaria
+        try:
+            return dt_str.replace('T', ' ').split('+')[0].split('Z')[0]
+        except Exception:
+            return dt_str
+
+    for r in rows:
+        r['first_visit_fmt'] = fmt(r.get('first_visit'))
+        r['last_visit_fmt'] = fmt(r.get('last_visit'))
+
+    return render_template(
+        "visitors.html",
+        visitors=rows,
+        total_unique=total_unique,
+        total_visits=total_visits
+    )
+
 if __name__ == '__main__':
    app.run(port=80)
