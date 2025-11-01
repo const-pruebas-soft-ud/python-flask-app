@@ -1,65 +1,65 @@
 <!doctype html>
-<html>
 <head>
     <title>Hello Azure - Python Quickstart</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
-<body>
-  <main>
-    <div class="px-4 py-3 my-2 text-center">
-      <img class="d-block mx-auto mb-4" src="{{ url_for('static', filename='images/azure-icon.svg') }}" alt="Azure Logo" width="192" height="192"/>
-      <h1 class="display-6 fw-bold">Hello {{name}}! 👋</h1>
-      <p class="fs-5">It is nice to meet you!</p>
-
-      <!-- Información del visitante desde la BD -->
-      {% if visitor %}
-      <div class="card mx-auto my-3" style="max-width: 500px;">
-        <div class="card-body">
-          <h5 class="card-title">📊 Información de Visita</h5>
-          <div class="row text-start">
-            <div class="col-6">
-              <p class="mb-2"><strong>🔢 Número de visitas:</strong></p>
-              <p class="mb-2"><strong>📅 Primera visita:</strong></p>
-              <p class="mb-2"><strong>🕐 Última visita:</strong></p>
-              {% if visitor.ip_address %}
-              <p class="mb-0"><strong>🌐 IP:</strong></p>
-              {% endif %}
+<html>
+   <body>
+     <main>
+        <div class="px-4 py-3 my-2 text-center">
+            <img class="d-block mx-auto mb-4" src="{{ url_for('static', filename='images/azure-icon.svg') }}" alt="Azure Logo" width="192" height="192"/>
+            <!-- <img  src="/docs/5.1/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57"> -->
+            <h1 class="display-6 fw-bold">Hello {{name}}! 👋</h1>
+            <p class="fs-5">
+                It is nice to meet you!
+            </p>
+            
+            <!-- Información del visitante desde la BD -->
+            {% if visitor %}
+            <div class="card mx-auto my-3" style="max-width: 500px;">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Información de Visita</h5>
+                    <div class="row text-start">
+                        <div class="col-6">
+                            <p class="mb-2"><strong>🔢 Número de visitas:</strong></p>
+                            <p class="mb-2"><strong>📅 Primera visita:</strong></p>
+                            <p class="mb-2"><strong>🕐 Última visita:</strong></p>
+                            {% if visitor.ip_address %}
+                            <p class="mb-0"><strong>🌐 IP:</strong></p>
+                            {% endif %}
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-2">{{ visitor.visit_count }}</p>
+                            <p class="mb-2">{{ visitor.first_visit[:10] }}</p>
+                            <p class="mb-2">{{ visitor.last_visit[:10] }}</p>
+                            {% if visitor.ip_address %}
+                            <p class="mb-0">{{ visitor.ip_address }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-6">
-              <p class="mb-2">{{ visitor.visit_count }}</p>
-              <p class="mb-2">{{ visitor.first_visit[:10] }}</p>
-              <p class="mb-2">{{ visitor.last_visit[:10] }}</p>
-              {% if visitor.ip_address %}
-              <p class="mb-0">{{ visitor.ip_address }}</p>
-              {% endif %}
+            
+            {% if visitor.visit_count == 1 %}
+            <div class="alert alert-success mx-auto" role="alert" style="max-width: 500px;">
+                🎉 ¡Bienvenido! Esta es tu primera visita
             </div>
+            {% else %}
+            <div class="alert alert-info mx-auto" role="alert" style="max-width: 500px;">
+                👏 ¡Bienvenido de nuevo! Esta es tu visita #{{ visitor.visit_count }}
+            </div>
+            {% endif %}
+            {% endif %}
+            
+            <!-- Contador global de saludos -->
+            <div class="badge bg-success text-white fs-6 my-2">
+                👋 Total de saludos en esta sesión: {{ greetings }}
+            </div>
+            
+            <br>
+            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg px-4 gap-3 mt-3">Back home</a>
           </div>
-        </div>
-      </div>
-
-      {% if visitor.visit_count == 1 %}
-      <div class="alert alert-success mx-auto" role="alert" style="max-width: 500px;">
-        🎉 ¡Bienvenido! Esta es tu primera visita
-      </div>
-      {% else %}
-      <div class="alert alert-info mx-auto" role="alert" style="max-width: 500px;">
-        👏 ¡Bienvenido de nuevo! Esta es tu visita #{{ visitor.visit_count }}
-      </div>
-      {% endif %}
-      {% endif %}
-
-      <!-- Contador global de saludos -->
-      <div class="badge bg-success text-white fs-6 my-2">
-        👋 Total de saludos en esta sesión: {{ greetings }}
-      </div>
-
-      <!-- Acciones: Back home + View Visitors -->
-      <div class="d-flex justify-content-center gap-2 mt-3">
-        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg px-4">Back home</a>
-        <a href="{{ url_for('list_visitors') }}" class="btn btn-info btn-lg px-4">View Visitors</a>
-      </div>
-    </div>
-  </main>
-</body>
+     </main>      
+   </body>
 </html>
