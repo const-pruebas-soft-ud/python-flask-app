@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadísticas de Visitantes</title>
+</head>
+<body>
+<h1>📊 Estadísticas Generales</h1>
+
+{% if empty %}
+  <p>No hay datos de visitantes todavía.</p>
+{% else %}
+  <ul>
+    <li><strong>Total visitantes únicos:</strong> {{ stats.total_usuarios }}</li>
+    <li><strong>Total visitas acumuladas:</strong> {{ stats.total_visitas }}</li>
+    <li><strong>Promedio de visitas por usuario:</strong> {{ stats.promedio_visitas }}</li>
+    <li><strong>Visitante con más visitas:</strong> {{ stats.top_user }}</li>
+    <li><strong>Visitantes nuevos (últimas 24h):</strong> {{ stats.nuevos_24h }}</li>
+    <li><strong>Visitas (últimas 24h):</strong> {{ stats.visitas_24h }}</li>
+  </ul>
+
+  <h2>🏅 Top 10 Visitantes</h2>
+  <ol>
+    {% for v in stats.top_10 %}
+      <li>{{ v.name }} — {{ v.visit_count }} visitas</li>
+    {% endfor %}
+  </ol>
+{% endif %}
+</body>
+</html>

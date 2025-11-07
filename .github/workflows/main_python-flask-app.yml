@@ -29,10 +29,11 @@ jobs:
           echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
           echo "FLASK_ENV=testing" >> .env
 
-      - name: Create virtual environment and install dependencies
+      - name: Install dependencies
         run: |
           python -m venv antenv
           source antenv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run Unit Tests with pytest
@@ -85,16 +86,18 @@ jobs:
           echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
           echo "FLASK_ENV=testing" >> .env
 
-      - name: Create virtual environment and install dependencies
+      - name: Install dependencies
         run: |
           python -m venv antenv
           source antenv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run BDD Tests with Behave
         run: |
           source antenv/bin/activate
-          behave features/ --format=pretty --format=json --outfile=behave-results.json --junit --junit-directory=behave-junit
+          mkdir -p behave-junit
+          behave features/ --format=pretty --format=json.pretty --outfile=behave-results.json --junit --junit-directory=behave-junit
         continue-on-error: false
 
       - name: Upload Behave Results
@@ -134,34 +137,16 @@ jobs:
           name: coverage-report
           path: .
 
-      - name: List files for debugging
-        run: |
-          echo "Files in current directory:"
-          ls -la
-          echo "Coverage file check:"
-          if [ -f coverage.xml ]; then
-            echo "✅ coverage.xml found"
-            head -20 coverage.xml
-          else
-            echo "❌ coverage.xml NOT found"
-          fi
-          echo "Workspace files:"
-          find . -name "*.py" -type f | grep -v "__pycache__" | grep -v "antenv" | head -20
-
       - name: Fix coverage.xml paths for SonarCloud
         run: |
           if [ -f coverage.xml ]; then
-            echo "Original coverage.xml first 10 lines:"
-            head -10 coverage.xml
-            # SonarCloud espera rutas relativas desde la raíz del proyecto
-            # No necesitamos modificar nada si las rutas ya son correctas
-            echo "Coverage.xml is ready for SonarCloud"
+            echo "Coverage.xml ready for SonarCloud"
           fi
 
       - name: Run SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN}}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
 
   deploy:
@@ -192,4 +177,3 @@ jobs:
         with:
           app-name: 'python-flask-app'
           slot-name: 'Production'
-
