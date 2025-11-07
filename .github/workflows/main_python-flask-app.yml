@@ -140,7 +140,18 @@ jobs:
       - name: Fix coverage.xml paths for SonarCloud
         run: |
           if [ -f coverage.xml ]; then
-            echo "Coverage.xml ready for SonarCloud"
+            echo "Fixing paths in coverage.xml"
+            # Obtener el nombre del repo (GITHUB_REPOSITORY = owner/repo)
+            REPO_NAME=$(echo "${GITHUB_REPOSITORY}" | awk -F'/' '{print $2}')
+            # Prefijo típico en GitHub Actions: /home/runner/work/<repo>/<repo>/
+            PREFIX="/home/runner/work/${REPO_NAME}/${REPO_NAME}/"
+            # Eliminar el prefijo conocido si está presente
+            sed -i "s|${PREFIX}||g" coverage.xml || true
+            # Si hay otras rutas absolutas, eliminar el prefijo genérico (seguro)
+            sed -i "s|/home/runner/work/[^/]*/[^/]*/||g" coverage.xml || true
+            echo "coverage.xml paths fixed"
+          else
+            echo "coverage.xml not found"
           fi
 
       - name: Run SonarQube Scan
