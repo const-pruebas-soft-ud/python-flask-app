@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from flask import (Flask, redirect, render_template, request,
@@ -156,35 +156,36 @@ def list_visitors():
         total_unique=total_unique,
         total_visits=total_visits
     )
-from datetime import timedelta
 
 @app.get("/stats")
 def stats():
     """
     Muestra estadísticas generales y el top de visitantes.
+    No falla si la tabla está vacía o no responde Supabase.
     """
     try:
-        # Obtener todos los registros
         response = supabase.table('visitors').select('*').execute()
         visitors = response.data or []
     except Exception as e:
         print(f"❌ Error consultando estadísticas: {e}")
         visitors = []
 
+    # --- Si no hay registros ---
     if not visitors:
+        print("⚠️ No hay visitantes registrados aún.")
         return render_template("stats.html", empty=True)
 
-    # --- Cálculos ---
+    # --- Cálculos base ---
     total_usuarios = len(visitors)
     total_visitas = sum(int(v.get("visit_count", 0) or 0) for v in visitors)
     promedio_visitas = total_visitas / total_usuarios if total_usuarios else 0
 
-    # Top 10
-    top_10 = sorted(visitors, key=lambda v: v["visit_count"], reverse=True)[:10]
-    top_user = max(visitors, key=lambda v: v["visit_count"])
+    # --- Top 10 (evita crash si lista vacía) ---
+    top_10 = sorted(visitors, key=lambda v: v.get("visit_count", 0), reverse=True)[:10]
+    top_user = top_10[0] if top_10 else {"name": "N/A", "visit_count": 0}
 
-    # Últimas 24 horas
-    ahora = datetime.now()
+    # --- Últimas 24h ---
+    ahora = datetime.utcnow()
     hace_24h = ahora - timedelta(hours=24)
 
     def parse_iso(date_str):
@@ -193,19 +194,17 @@ def stats():
         except Exception:
             return None
 
-    visitas_24h = 0
     nuevos_24h = 0
-
+    visitas_24h = 0
     for v in visitors:
         first_visit = parse_iso(v.get("first_visit", ""))
         last_visit = parse_iso(v.get("last_visit", ""))
-
         if first_visit and first_visit > hace_24h:
             nuevos_24h += 1
         if last_visit and last_visit > hace_24h:
             visitas_24h += 1
 
-    # --- Empaquetar ---
+    # --- Armar datos para la plantilla ---
     stats_data = {
         "total_usuarios": total_usuarios,
         "total_visitas": total_visitas,
@@ -216,7 +215,9 @@ def stats():
         "visitas_24h": visitas_24h
     }
 
+    print("📊 Estadísticas generadas correctamente:", stats_data)
     return render_template("stats.html", stats=stats_data)
+
 
 
 if __name__ == '__main__':
