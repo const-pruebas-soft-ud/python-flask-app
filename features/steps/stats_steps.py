@@ -3,11 +3,11 @@ from behave import given, when, then
 from app import app
 
 # --- Contexto base ---
-@given('que la base de datos contiene visitantes')
+@given('que la base de datos contiene visitantes para estadísticas')
 def step_impl(context):
     """
-    Prepara el cliente Flask para las pruebas.
-    No inserta datos reales (la lógica de HU3 maneja lista vacía con seguridad).
+    Prepara el cliente Flask para las pruebas de estadísticas.
+    No inserta datos reales (la HU3 maneja lista vacía con seguridad).
     """
     context.client = app.test_client()
 
@@ -23,7 +23,7 @@ def step_impl(context):
 def step_impl(context):
     context.response = context.client.get("/stats")
 
-# --- Utilidad para decodificar HTML ---
+# --- Utilidad ---
 def get_html(context):
     """Convierte el contenido de bytes a string UTF-8."""
     return context.response.data.decode("utf-8")
@@ -32,10 +32,10 @@ def get_html(context):
 @then('veo "{texto}"')
 def step_impl(context, texto):
     html = get_html(context)
-    assert texto in html, f'No se encontró el texto esperado: "{texto}"'
+    assert texto in html, f'❌ No se encontró el texto esperado: "{texto}"'
 
-# Alias opcional para pasos que usen “Entonces debería ver …”
+# Alias opcional
 @then('debería ver "{texto}"')
 def step_impl(context, texto):
     html = get_html(context)
-    assert texto in html, f'No se encontró el texto esperado: "{texto}"'
+    assert texto in html, f'❌ No se encontró el texto esperado: "{texto}"'
