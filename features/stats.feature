@@ -5,7 +5,7 @@ Característica: Estadísticas y top de visitantes
   Quiero ver estadísticas generales y el top 10 de visitantes
 
   Antecedentes:
-    Dado que la base de datos contiene visitantes:
+    Dado que la base de datos contiene visitantes para estadísticas:
       | name         | first_visit              | last_visit               | visit_count |
       | Ana Pérez    | 2025-10-28T09:10:00Z     | 2025-10-30T10:30:00Z     | 3           |
       | Luis Gómez   | 2025-10-27T08:00:00Z     | 2025-10-29T12:00:00Z     | 5           |
@@ -14,8 +14,8 @@ Característica: Estadísticas y top de visitantes
   @stats @smoke
   Escenario: Ver estadísticas generales y top de visitantes
     Cuando visito la ruta "/stats"
-    Entonces veo "Estadísticas Generales"
-    Y veo "Top 10 Visitantes"
+    Entonces veo "📊 Estadísticas Generales"
+    Y veo "🏅 Top 10 Visitantes"
     Y veo "Total visitantes únicos: 3"
     Y veo "Total visitas acumuladas: 9"
     Y veo "Visitante con más visitas: Luis Gómez"
@@ -24,4 +24,4 @@ Característica: Estadísticas y top de visitantes
   Escenario: Ver mensaje cuando no hay datos
     Dado que no existen visitantes registrados
     Cuando visito la ruta "/stats"
-    Entonces veo "No hay datos de visitantes"
+    Entonces veo "No hay datos de visitantes todavía."

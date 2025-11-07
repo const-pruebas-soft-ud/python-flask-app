@@ -7,15 +7,13 @@ from app import app
 def step_impl(context):
     """
     Prepara el cliente Flask para las pruebas de estadísticas.
-    No inserta datos reales (la HU3 maneja lista vacía con seguridad).
+    (Los datos se asumen cargados o simulados.)
     """
     context.client = app.test_client()
 
 @given('que no existen visitantes registrados')
 def step_impl(context):
-    """
-    Prepara el cliente Flask para simular base de datos vacía.
-    """
+    """Prepara el cliente Flask para simular base de datos vacía."""
     context.client = app.test_client()
 
 # --- Acción ---
@@ -34,7 +32,6 @@ def step_impl(context, texto):
     html = get_html(context)
     assert texto in html, f'❌ No se encontró el texto esperado: "{texto}"'
 
-# Alias opcional
 @then('debería ver "{texto}"')
 def step_impl(context, texto):
     html = get_html(context)
