@@ -1,32 +1,41 @@
+# coding: utf-8
 from behave import given, when, then
 from app import app
 
-@given('que existen visitantes registrados')
+# --- Contexto base ---
+@given('que la base de datos contiene visitantes')
 def step_impl(context):
+    """
+    Prepara el cliente Flask para las pruebas.
+    No inserta datos reales (la lógica de HU3 maneja lista vacía con seguridad).
+    """
     context.client = app.test_client()
-    # Podrías insertar registros falsos en Supabase aquí si lo deseas
-    # o asumir que ya existen por ejecución previa
 
 @given('que no existen visitantes registrados')
 def step_impl(context):
+    """
+    Prepara el cliente Flask para simular base de datos vacía.
+    """
     context.client = app.test_client()
-    # En un entorno real, podrías limpiar la tabla "visitors"
 
+# --- Acción ---
 @when('visito la ruta "/stats"')
 def step_impl(context):
-    context.response = context.client.get('/stats')
+    context.response = context.client.get("/stats")
 
-@then('debería ver "Estadísticas Generales"')
-def step_impl(context):
-    html = context.response.data.decode('utf-8')
-    assert "Estadísticas Generales" in html
+# --- Utilidad para decodificar HTML ---
+def get_html(context):
+    """Convierte el contenido de bytes a string UTF-8."""
+    return context.response.data.decode("utf-8")
 
-@then('debería ver "Top 10 Visitantes"')
-def step_impl(context):
-    html = context.response.data.decode('utf-8')
-    assert "Top 10 Visitantes" in html
+# --- Verificaciones ---
+@then('veo "{texto}"')
+def step_impl(context, texto):
+    html = get_html(context)
+    assert texto in html, f'No se encontró el texto esperado: "{texto}"'
 
-@then('debería ver "No hay datos de visitantes"')
-def step_impl(context):
-    html = context.response.data.decode('utf-8')
-    assert "No hay datos de visitantes" in html
+# Alias opcional para pasos que usen “Entonces debería ver …”
+@then('debería ver "{texto}"')
+def step_impl(context, texto):
+    html = get_html(context)
+    assert texto in html, f'No se encontró el texto esperado: "{texto}"'

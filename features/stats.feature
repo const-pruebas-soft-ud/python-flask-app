@@ -19,3 +19,9 @@ Característica: Estadísticas y top de visitantes
     Y veo "Total visitantes únicos: 3"
     Y veo "Total visitas acumuladas: 9"
     Y veo "Visitante con más visitas: Luis Gómez"
+
+  @stats
+  Escenario: Ver mensaje cuando no hay datos
+    Dado que no existen visitantes registrados
+    Cuando visito la ruta "/stats"
+    Entonces veo "No hay datos de visitantes"
