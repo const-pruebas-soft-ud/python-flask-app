@@ -18,12 +18,15 @@ def step_impl(context):
 
 @then('debería ver "Estadísticas Generales"')
 def step_impl(context):
-    assert b'Estadísticas Generales' in context.response.data
+    html = context.response.data.decode('utf-8')
+    assert "Estadísticas Generales" in html
 
 @then('debería ver "Top 10 Visitantes"')
 def step_impl(context):
-    assert b'Top 10 Visitantes' in context.response.data
+    html = context.response.data.decode('utf-8')
+    assert "Top 10 Visitantes" in html
 
 @then('debería ver "No hay datos de visitantes"')
 def step_impl(context):
-    assert b'No hay datos de visitantes' in context.response.data
+    html = context.response.data.decode('utf-8')
+    assert "No hay datos de visitantes" in html
