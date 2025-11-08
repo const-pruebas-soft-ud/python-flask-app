@@ -100,15 +100,6 @@ jobs:
           behave features/ --format=pretty --format=json.pretty --outfile=behave-results.json --junit --junit-directory=behave-junit
         continue-on-error: false
 
-      - name: Upload Behave Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: behave-results
-          path: |
-            behave-results.json
-            behave-junit/
-
       - name: Generate BDD HTML report
         if: always()
         run: |
