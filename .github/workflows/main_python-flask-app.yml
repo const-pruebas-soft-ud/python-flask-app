@@ -161,8 +161,23 @@ jobs:
             echo "coverage.xml not found"
           fi
 
+      - name: Debug coverage.xml presence
+        run: |
+          echo "PWD: $(pwd)"
+          echo "Listing files:" && ls -la || true
+          if [ -f coverage.xml ]; then
+            echo "--- coverage.xml head ---"
+            head -n 60 coverage.xml || true
+            echo "--- end coverage.xml ---"
+          else
+            echo "coverage.xml not present in sonarqube job workspace"
+          fi
+
       - name: Run SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          args: >
+            -Dsonar.python.coverage.reportPaths=coverage.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
