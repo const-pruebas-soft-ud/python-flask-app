@@ -109,6 +109,22 @@ jobs:
             behave-results.json
             behave-junit/
 
+      - name: Generate BDD HTML report
+        if: always()
+        run: |
+          source antenv/bin/activate
+          python tools/behave_json_to_html.py behave-results.json htmlcov/behave-report.html || true
+
+      - name: Upload Behave Results (with HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: behave-results
+          path: |
+            behave-results.json
+            behave-junit/
+            htmlcov/behave-report.html
+
       - name: Display BDD Test Summary
         if: always()
         run: |
