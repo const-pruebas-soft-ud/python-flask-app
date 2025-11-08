@@ -119,13 +119,13 @@ jobs:
       - name: Display BDD Test Summary
         if: always()
         run: |
-          echo "### 🧪 BDD Test Results (Behave)" >> $GITHUB_STEP_SUMMARY
+          echo "### BDD Test Results (Behave)" >> $GITHUB_STEP_SUMMARY
           if [ -f behave-results.json ]; then
-            echo "✅ Behave tests completed successfully" >> $GITHUB_STEP_SUMMARY
+            echo " Behave tests completed successfully" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "📊 See detailed report in artifacts" >> $GITHUB_STEP_SUMMARY
+            echo " See detailed report in artifacts" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Behave tests failed" >> $GITHUB_STEP_SUMMARY
+            echo " Behave tests failed" >> $GITHUB_STEP_SUMMARY
           fi
 
   sonarqube:
@@ -144,23 +144,6 @@ jobs:
           name: coverage-report
           path: .
 
-      - name: Fix coverage.xml paths for SonarCloud
-        run: |
-          if [ -f coverage.xml ]; then
-            echo "Fixing paths in coverage.xml"
-            # Obtener el nombre del repo (GITHUB_REPOSITORY = owner/repo)
-            REPO_NAME=$(echo "${GITHUB_REPOSITORY}" | awk -F'/' '{print $2}')
-            # Prefijo típico en GitHub Actions: /home/runner/work/<repo>/<repo>/
-            PREFIX="/home/runner/work/${REPO_NAME}/${REPO_NAME}/"
-            # Eliminar el prefijo conocido si está presente
-            sed -i "s|${PREFIX}||g" coverage.xml || true
-            # Si hay otras rutas absolutas, eliminar el prefijo genérico (seguro)
-            sed -i "s|/home/runner/work/[^/]*/[^/]*/||g" coverage.xml || true
-            echo "coverage.xml paths fixed"
-          else
-            echo "coverage.xml not found"
-          fi
-
       - name: Debug coverage.xml presence
         run: |
           echo "PWD: $(pwd)"
@@ -173,14 +156,20 @@ jobs:
             echo "coverage.xml not present in sonarqube job workspace"
           fi
 
-      - name: Run SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
-        with:
-          args: >
-            -Dsonar.python.coverage.reportPaths=coverage.xml
+      - name: Analyze with SonarCloud
+        # Pin to a specific commit of the official SonarCloud GitHub Action
+        uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          # Additional arguments for the SonarScanner CLI
+          args: |
+            -Dsonar.projectKey=const-pruebas-soft-ud_python-flask-app
+            -Dsonar.organization=const-pruebas-soft-ud
+            -Dsonar.sources=.
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+          # When you need the analysis to take place in a directory other than the one from which it was launched, default is .
+          projectBaseDir: .
 
   deploy:
     name: Deploy to Azure Web App
