@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from flask import (Flask, redirect, render_template, request,
@@ -185,7 +185,7 @@ def stats():
     top_user = top_10[0] if top_10 else {"name": "N/A", "visit_count": 0}
 
     # --- Últimas 24h ---
-    ahora = datetime.utcnow()
+    ahora = datetime.now(timezone.utc)
     hace_24h = ahora - timedelta(hours=24)
 
     def parse_iso(date_str):
