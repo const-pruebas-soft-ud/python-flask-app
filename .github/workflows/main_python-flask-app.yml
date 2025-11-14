@@ -23,13 +23,15 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Create .env file from secrets (secure)
+      - name: Create .env file from secrets (safe for Sonar)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          FLASK_ENV: testing
         run: |
-          cat > .env << 'EOF'
-          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
-          FLASK_ENV=testing
-          EOF
+          echo "SUPABASE_URL=$SUPABASE_URL"   >> .env
+          echo "SUPABASE_KEY=$SUPABASE_KEY"   >> .env
+          echo "FLASK_ENV=$FLASK_ENV"         >> .env
 
       - name: Install dependencies
         run: |
@@ -82,13 +84,15 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Create .env file from secrets (secure)
+      - name: Create .env file from secrets (safe for Sonar)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          FLASK_ENV: testing
         run: |
-          cat > .env << 'EOF'
-          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
-          FLASK_ENV=testing
-          EOF
+          echo "SUPABASE_URL=$SUPABASE_URL"   >> .env
+          echo "SUPABASE_KEY=$SUPABASE_KEY"   >> .env
+          echo "FLASK_ENV=$FLASK_ENV"         >> .env
 
       - name: Install dependencies
         run: |
