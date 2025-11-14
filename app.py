@@ -190,7 +190,8 @@ def stats():
 
     def parse_iso(date_str):
         try:
-            return datetime.fromisoformat(date_str.replace("Z", ""))
+            fixed = date_str.replace("Z", "+00:00")
+            return datetime.fromisoformat(fixed)
         except Exception:
             return None
 
