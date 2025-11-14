@@ -3,6 +3,12 @@ Pruebas unitarias para la aplicación Flask
 """
 import pytest
 from unittest.mock import patch, MagicMock
+import os
+
+# Evitar error de importación cuando no hay .env en entorno de CI/local
+os.environ.setdefault('SUPABASE_URL', 'http://example')
+os.environ.setdefault('SUPABASE_KEY', 'dummy')
+
 from app import app, register_visitor
 from datetime import datetime
 
@@ -372,3 +378,21 @@ def test_register_visitor_database_error(mock_supabase):
     
     # Debe retornar None o dict vacío en caso de error
     assert result is None or result == {}
+
+
+@patch('app.supabase')
+def test_list_visitors_shows_rows(mock_supabase, client):
+    """Prueba que la ruta /visitors muestra filas cuando hay datos"""
+    rows = [{
+        'name': 'Alice',
+        'visit_count': 2,
+        'first_visit': '2025-10-29T10:00:00',
+        'last_visit': '2025-10-29T12:00:00'
+    }]
+    mock_resp = MagicMock()
+    mock_resp.data = rows
+    mock_supabase.table().select().order().execute.return_value = mock_resp
+
+    response = client.get('/visitors')
+    assert response.status_code == 200
+    assert b'Alice' in response.data

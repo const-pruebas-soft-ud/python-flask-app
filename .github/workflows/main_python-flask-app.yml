@@ -23,16 +23,21 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Create .env file from secrets
+      - name: Create .env file from secrets (safe for Sonar)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          FLASK_ENV: testing
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
-          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
-          echo "FLASK_ENV=testing" >> .env
+          echo "SUPABASE_URL=$SUPABASE_URL"   >> .env
+          echo "SUPABASE_KEY=$SUPABASE_KEY"   >> .env
+          echo "FLASK_ENV=$FLASK_ENV"         >> .env
 
-      - name: Create virtual environment and install dependencies
+      - name: Install dependencies
         run: |
           python -m venv antenv
           source antenv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run Unit Tests with pytest
@@ -79,25 +84,37 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Create .env file from secrets
+      - name: Create .env file from secrets (safe for Sonar)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          FLASK_ENV: testing
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
-          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
-          echo "FLASK_ENV=testing" >> .env
+          echo "SUPABASE_URL=$SUPABASE_URL"   >> .env
+          echo "SUPABASE_KEY=$SUPABASE_KEY"   >> .env
+          echo "FLASK_ENV=$FLASK_ENV"         >> .env
 
-      - name: Create virtual environment and install dependencies
+      - name: Install dependencies
         run: |
           python -m venv antenv
           source antenv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run BDD Tests with Behave
         run: |
           source antenv/bin/activate
-          behave features/ --format=pretty --format=json --outfile=behave-results.json --junit --junit-directory=behave-junit
+          mkdir -p behave-junit
+          behave features/ --format=pretty --format=json.pretty --outfile=behave-results.json --junit --junit-directory=behave-junit
         continue-on-error: false
 
-      - name: Upload Behave Results
+      - name: Generate BDD HTML report
+        if: always()
+        run: |
+          source antenv/bin/activate
+          python tools/behave_json_to_html.py behave-results.json htmlcov/behave-report.html || true
+
+      - name: Upload Behave Results (with HTML)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -105,23 +122,25 @@ jobs:
           path: |
             behave-results.json
             behave-junit/
+            htmlcov/behave-report.html
 
       - name: Display BDD Test Summary
         if: always()
         run: |
-          echo "### 🧪 BDD Test Results (Behave)" >> $GITHUB_STEP_SUMMARY
+          echo "### BDD Test Results (Behave)" >> $GITHUB_STEP_SUMMARY
           if [ -f behave-results.json ]; then
-            echo "✅ Behave tests completed successfully" >> $GITHUB_STEP_SUMMARY
+            echo " Behave tests completed successfully" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "📊 See detailed report in artifacts" >> $GITHUB_STEP_SUMMARY
+            echo " See detailed report in artifacts" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Behave tests failed" >> $GITHUB_STEP_SUMMARY
+            echo " Behave tests failed" >> $GITHUB_STEP_SUMMARY
           fi
 
   sonarqube:
     name: SonarQube Code Analysis
     runs-on: ubuntu-latest
     needs: [build, bdd-tests]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -134,35 +153,29 @@ jobs:
           name: coverage-report
           path: .
 
-      - name: List files for debugging
+      - name: Debug coverage.xml presence
         run: |
-          echo "Files in current directory:"
-          ls -la
-          echo "Coverage file check:"
+          echo "PWD: $(pwd)"
+          echo "Listing files:" && ls -la || true
           if [ -f coverage.xml ]; then
-            echo "✅ coverage.xml found"
-            head -20 coverage.xml
+            echo "--- coverage.xml head ---"
+            head -n 60 coverage.xml || true
+            echo "--- end coverage.xml ---"
           else
-            echo "❌ coverage.xml NOT found"
-          fi
-          echo "Workspace files:"
-          find . -name "*.py" -type f | grep -v "__pycache__" | grep -v "antenv" | head -20
-
-      - name: Fix coverage.xml paths for SonarCloud
-        run: |
-          if [ -f coverage.xml ]; then
-            echo "Original coverage.xml first 10 lines:"
-            head -10 coverage.xml
-            # SonarCloud espera rutas relativas desde la raíz del proyecto
-            # No necesitamos modificar nada si las rutas ya son correctas
-            echo "Coverage.xml is ready for SonarCloud"
+            echo "coverage.xml not present in sonarqube job workspace"
           fi
 
-      - name: Run SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
+      - name: Analyze with SonarCloud
+        uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN}}
-          SONAR_HOST_URL: https://sonarcloud.io
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: |
+            -Dsonar.projectKey=const-pruebas-soft-ud_python-flask-app
+            -Dsonar.organization=const-pruebas-soft-ud
+            -Dsonar.sources=.
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+          projectBaseDir: .
 
   deploy:
     name: Deploy to Azure Web App
@@ -180,16 +193,15 @@ jobs:
           name: python-app
 
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@d21862cbb2c82f2c058a3d22d9087a3a1ee3a93c
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D1103325C75540E48DF5C6A55253D93A }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_3C5F6BA14EC14E13A3D0A5BAACDEA3A5 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B53DA87D55254711AD365EE9F0C7A122 }}
 
       - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@c713e194af24a2cffe1f853d27c9c143bc410930
         id: deploy-to-webapp
         with:
           app-name: 'python-flask-app'
           slot-name: 'Production'
-
