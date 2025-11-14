@@ -23,11 +23,13 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Create .env file from secrets
+      - name: Create .env file from secrets (secure)
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
-          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
-          echo "FLASK_ENV=testing" >> .env
+          cat > .env << 'EOF'
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+          FLASK_ENV=testing
+          EOF
 
       - name: Install dependencies
         run: |
@@ -80,11 +82,13 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Create .env file from secrets
+      - name: Create .env file from secrets (secure)
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
-          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
-          echo "FLASK_ENV=testing" >> .env
+          cat > .env << 'EOF'
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+          FLASK_ENV=testing
+          EOF
 
       - name: Install dependencies
         run: |
@@ -132,6 +136,7 @@ jobs:
     name: SonarQube Code Analysis
     runs-on: ubuntu-latest
     needs: [build, bdd-tests]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -157,18 +162,15 @@ jobs:
           fi
 
       - name: Analyze with SonarCloud
-        # Pin to a specific commit of the official SonarCloud GitHub Action
         uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          # Additional arguments for the SonarScanner CLI
           args: |
             -Dsonar.projectKey=const-pruebas-soft-ud_python-flask-app
             -Dsonar.organization=const-pruebas-soft-ud
             -Dsonar.sources=.
             -Dsonar.python.coverage.reportPaths=coverage.xml
-          # When you need the analysis to take place in a directory other than the one from which it was launched, default is .
           projectBaseDir: .
 
   deploy:
@@ -187,14 +189,14 @@ jobs:
           name: python-app
 
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@d21862cbb2c82f2c058a3d22d9087a3a1ee3a93c
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D1103325C75540E48DF5C6A55253D93A }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_3C5F6BA14EC14E13A3D0A5BAACDEA3A5 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B53DA87D55254711AD365EE9F0C7A122 }}
 
       - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@c713e194af24a2cffe1f853d27c9c143bc410930
         id: deploy-to-webapp
         with:
           app-name: 'python-flask-app'
